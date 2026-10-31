@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="시니어를 위한 상황별 여행 영어. 문장별 듣기, 전체 듣기, 속도 조절, 역할 연습을 스마트폰에서 이용하세요."><title>시니어 영어회화 선생님</title>
+<style>
+:root{font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;color:#172334;background:#f5f8fc}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:20px 14px 48px}h1{font-size:clamp(23px,5vw,32px);margin:0 0 8px}.intro{color:#526276;line-height:1.65}.panel,.pair{background:white;border:1px solid #d9e2ed;border-radius:17px;padding:17px;margin:13px 0;box-shadow:0 2px 9px #17233408}.scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2276cc;outline-offset:2px}.pick,.action{background:#edf4fc;border:1px solid #cbd9e8;border-radius:11px;padding:13px 10px;font-size:16px;font-weight:650;color:#193553;min-height:48px}.pick.on{background:#d6eaff;border:2px solid #226dba}.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.action{padding:12px 16px}.small{color:#596c80;font-size:14px}.say{display:flex;gap:12px;padding:12px 0}.say+.say{border-top:1px solid #ebf0f5}.sound{width:52px;min-width:52px;height:52px;border:1px solid #b8cce0;background:#edf4fc;border-radius:12px;font-size:23px}.who{font-size:14px;color:#1c65ad;font-weight:700;margin-bottom:4px}.eng{font-size:20px;font-weight:650;line-height:1.5}.kor{font-size:17px;color:#596c80;margin-top:5px;line-height:1.5}.step{font-weight:700;font-size:15px;color:#4e667e;margin-bottom:5px}select{border:1px solid #cbd9e8;padding:10px;border-radius:9px;background:white}#answerDisplay{margin-top:12px}#audioStatus{line-height:1.5}#practicePrompt{margin-top:12px}@media(max-width:420px){.scenarios{grid-template-columns:repeat(2,1fr)}.eng{font-size:19px}.kor{font-size:16px}}@media(prefers-reduced-motion:no-preference){button{transition:background .15s}}
+</style>
+</head>
+<body>
+<main id="app"><p class="small">로그인 없이 시작하는 여행 영어 연습</p>
+<h1>🌍 시니어 영어회화 선생님</h1>
+<p class="intro">상황을 선택하고 🔊 버튼을 눌러 영어를 들어보세요. 영어 문장 아래에는 한국어 뜻만 표시합니다.</p>
+<section class="panel"><div class="scenarios" id="scenarios" aria-label="학습 상황 선택"></div></section>
+<section class="panel"><div class="toolbar"><div><h2 id="scTitle">☕ 카페에서 주문하기</h2><div class="small" id="scSubtitle"></div></div><label>음성 속도 <select id="rate"><option value="0.8">천천히</option><option value="0.95" selected>보통</option><option value="1.1">빠르게</option></select></label></div><div class="controls"><button class="action" id="playAll">▶ 전체 대화 듣기</button><button class="action" id="stopAll">■ 정지</button></div></section>
+<div id="dialogues"></div>
+<section class="panel"><h2>🎤 역할 연습</h2><p class="small">상대방의 질문을 듣고 여행자 역할로 대답해 보세요.</p><div class="controls"><button class="action" id="nextQ">다음 질문 듣기</button><button class="action" id="modelA">모범 답변 듣기</button></div><p class="small" id="practiceProgress">첫 번째 질문부터 시작합니다.</p><div class="eng" id="practicePrompt"></div><div class="kor" id="practiceMeaning"></div><div class="controls"><button class="action" id="reveal">정답 보기 / 숨기기</button></div><div id="answerDisplay" class="eng" hidden></div><p class="small">자유 대화와 AI 피드백은 ChatGPT에서 진행할 수 있습니다. 예문 연습은 로그인 없이 이용할 수 있습니다. 음성 재생에는 기기의 영어 읽기 기능이 필요합니다. 입국 심사에서는 본인의 실제 여행 정보에 맞춰 답하세요.</p></section>
+<section class="panel"><h2>💬 AI 선생님과 자유 대화</h2><label>난이도 <select id="level"><option>아주 쉬움</option><option>보통</option></select></label><div class="controls"><button class="action" id="freeChat">ChatGPT 대화 요청문 만들기</button></div><p class="small" id="chatStatus">홈페이지에서는 예문을 연습하고, AI 자유 대화는 본인의 ChatGPT에서 이어갑니다.</p><div id="chatActions" hidden><textarea id="chatPrompt" aria-label="ChatGPT 대화 요청문" rows="7" style="width:100%;font:inherit;line-height:1.7;padding:12px;margin:12px 0;border:1px solid #cbd9e8;border-radius:10px"></textarea><div class="controls"><button class="action" id="copyPrompt">① 요청문 복사</button><a class="action" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" style="text-decoration:none">② ChatGPT 열기 ↗</a></div></div></section><p id="audioStatus" class="small" role="status">스피커 버튼을 눌러 영어 문장을 들어보세요.</p>
+</main>
+<script>
+'use strict';
+const db=[
+{label:'☕ 카페',title:'☕ 카페에서 주문하기',pairs:[
+[['Hello! What can I get for you?','안녕하세요! 무엇을 드릴까요?'],["I'd like a latte, please.",'라테 한 잔 주세요.']],
+[['What size would you like?','어떤 크기로 드릴까요?'],['Medium, please.','중간 크기로 주세요.']],
+[['Would you like it hot or iced?','따뜻하게 드릴까요, 차갑게 드릴까요?'],['Iced, please.','차갑게 주세요.']],
+[['Would you like anything else?','더 필요한 것이 있으신가요?'],["No, that's all. Thank you.",'아니요, 그게 전부예요. 감사합니다.']],
+[['For here or to go?','매장에서 드시나요, 가져가시나요?'],['For here, please.','매장에서 마실게요.']],
+[['How would you like to pay?','어떻게 결제하시겠어요?'],['By card, please.','카드로 결제할게요.']],
+[["Here's your drink. Enjoy!",'주문하신 음료입니다. 맛있게 드세요!'],['Thank you. Have a nice day!','감사합니다. 좋은 하루 보내세요!']]]},
+{label:'🍽️ 식당',title:'🍽️ 레스토랑 이용하기',pairs:[
+[['Do you have a reservation?','예약하셨나요?'],['No. A table for two, please.','아니요. 두 명 자리 부탁합니다.']],
+[['Would you like to see the menu?','메뉴를 보시겠어요?'],['Yes, please.','네, 부탁합니다.']],
+[['Are you ready to order?','주문하시겠어요?'],["I'd like the chicken, please.",'닭고기 요리로 주세요.']],
+[['Would you like something to drink?','마실 것은 드릴까요?'],['Water, please.','물 주세요.']],
+[['How is everything?','음식은 괜찮으신가요?'],["It's delicious. Thank you.",'아주 맛있어요. 감사합니다.']],
+[['Would you like dessert?','후식을 드시겠어요?'],['No, thank you.','아니요, 괜찮습니다.']],
+[['Can I get you anything else?','더 필요한 것이 있으신가요?'],['Could I have the bill, please?','계산서 좀 주시겠어요?']]]},
+{label:'🧭 길 묻기',title:'🧭 길 물어보기',pairs:[
+[['Excuse me. Can I help you?','실례합니다. 도와드릴까요?'],['How do I get to the station?','역에 어떻게 가나요?']],
+[['Are you walking?','걸어가시나요?'],["Yes, I'm walking.",'네, 걸어가요.']],
+[['Go straight for two blocks.','두 블록 직진하세요.'],['Okay. Thank you.','알겠습니다. 감사합니다.']],
+[['Then turn left at the corner.','그다음 모퉁이에서 왼쪽으로 도세요.'],['Is it on the left?','왼쪽에 있나요?']],
+[["Yes, it's next to the bank.",'네, 은행 옆에 있어요.'],['Is it far from here?','여기서 먼가요?']],
+[["It's about ten minutes away.",'약 10분 거리에 있어요.'],['Can I walk there?','걸어갈 수 있나요?']],
+[["Yes, it's an easy walk.",'네, 걸어가기 편해요.'],['Thank you for your help.','도와주셔서 감사합니다.']]]},
+{label:'🏨 호텔',title:'🏨 호텔 체크인하기',pairs:[
+[['Welcome! How can I help you?','어서 오세요! 무엇을 도와드릴까요?'],["I'd like to check in, please.",'체크인하고 싶습니다.']],
+[['Do you have a reservation?','예약하셨나요?'],['Yes, I have a reservation.','네, 예약했습니다.']],
+[['May I have your name, please?','성함을 알려주시겠어요?'],['My name is Kim.','제 이름은 김입니다.']],
+[['May I see your passport?','여권을 보여주시겠어요?'],['Sure. Here it is.','네. 여기 있습니다.']],
+[['Would you like one key or two?','열쇠를 하나 드릴까요, 두 개 드릴까요?'],['Two, please.','두 개 주세요.']],
+[['Breakfast starts at seven.','아침 식사는 7시에 시작합니다.'],['Where is the restaurant?','식당은 어디인가요?']],
+[["It's on the second floor.",'2층에 있습니다.'],['Thank you very much.','대단히 감사합니다.']]]},
+{label:'🛂 입국 심사',title:'🛂 입국 심사 받기',pairs:[
+[['May I see your passport?','여권을 보여주시겠어요?'],['Here you are.','여기 있습니다.']],
+[['What is the purpose of your visit?','방문 목적이 무엇인가요?'],["I'm here for tourism.",'관광하러 왔습니다.']],
+[['How long will you stay?','얼마나 머무르실 예정인가요?'],["I'll stay for one week.",'일주일 머무를 예정입니다.']],
+[['Where will you be staying?','어디에서 머무르실 예정인가요?'],['At a hotel in the city.','시내 호텔에서 머무를 예정입니다.']],
+[['Are you traveling alone?','혼자 여행하시나요?'],["No, I'm traveling with my wife.",'아니요, 아내와 여행합니다.']],
+[['Do you have a return ticket?','귀국 항공권이 있으신가요?'],['Yes, I do.','네, 있습니다.']],
+[['Enjoy your stay.','즐거운 여행 되세요.'],['Thank you.','감사합니다.']]]},
+{label:'👋 인사',title:'👋 인사하고 대화하기',pairs:[
+[['Hello! How are you?','안녕하세요! 어떻게 지내세요?'],["I'm fine, thank you.",'잘 지내요, 감사합니다.']],
+[["What's your name?",'이름이 무엇인가요?'],['My name is Kim.','제 이름은 김입니다.']],
+[['Where are you from?','어디에서 오셨나요?'],["I'm from South Korea.",'한국에서 왔습니다.']],
+[['Is this your first visit?','이번이 첫 방문인가요?'],["Yes, it's my first time here.",'네, 이곳은 처음입니다.']],
+[['Are you enjoying your trip?','여행을 즐기고 계신가요?'],['Yes, very much.','네, 아주 즐겁습니다.']],
+[['What are your plans today?','오늘 무슨 계획이 있으신가요?'],["I'm going sightseeing.",'관광하러 갈 예정입니다.']],
+[['It was nice meeting you.','만나서 반가웠습니다.'],['Nice meeting you, too.','저도 만나서 반가웠습니다.']]]}
+];
+let current=0,practice=-1,queueId=0;const el=id=>document.getElementById(id);
+function stop(){queueId++;if('speechSynthesis'in window)speechSynthesis.cancel();document.querySelectorAll('.sound').forEach(b=>b.textContent='🔊')}
+function speak(t,callback){if(!('speechSynthesis'in window)){el('audioStatus').textContent='이 브라우저는 음성 합성을 지원하지 않습니다.';return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=Number(el('rate').value);u.pitch=1;const voices=speechSynthesis.getVoices();u.voice=voices.find(v=>v.lang==='en-US'&&/natural|google|microsoft/i.test(v.name))||voices.find(v=>v.lang==='en-US')||voices.find(v=>v.lang.startsWith('en'))||null;u.onend=()=>callback&&callback();u.onerror=()=>{el('audioStatus').textContent='음성 재생에 문제가 발생했습니다. 기기 음량과 음성 설정을 확인하세요.'};speechSynthesis.speak(u)}
+function render(){stop();practice=-1;el('scTitle').textContent=db[current].title;el('scSubtitle').textContent='상대방과 여행자의 대화 '+db[current].pairs.length+'단계';el('chatActions').hidden=true;el('chatPrompt').value='';el('chatStatus').textContent='AI 대화 요청문을 만들어 본인의 ChatGPT에서 연습할 수 있습니다.';el('scenarios').replaceChildren();db.forEach((d,i)=>{const b=document.createElement('button');b.className='pick'+(i===current?' on':'');b.textContent=d.label;b.setAttribute('aria-pressed',String(i===current));b.onclick=()=>{current=i;render()};el('scenarios').append(b)});el('dialogues').replaceChildren();db[current].pairs.forEach((pair,i)=>{let card=document.createElement('section');card.className='pair';let heading=document.createElement('div');heading.className='step';heading.textContent='대화 '+(i+1);card.append(heading);pair.forEach((p,j)=>{let line=document.createElement('div');line.className='say';let b=document.createElement('button');b.className='sound';b.textContent='🔊';b.setAttribute('aria-label',p[0]+' 듣기');b.onclick=()=>{stop();b.textContent='▶';const id=queueId;speak(p[0],()=>{if(id===queueId)b.textContent='🔊'})};let body=document.createElement('div');let who=document.createElement('div');who.className='who';who.textContent=j===0?'직원 / 상대방':'나 / 여행자';let eng=document.createElement('div');eng.className='eng';eng.textContent=p[0];let kor=document.createElement('div');kor.className='kor';kor.textContent=p[1];body.append(who,eng,kor);line.append(b,body);card.append(line)});el('dialogues').append(card)});el('practicePrompt').textContent='';el('practiceMeaning').textContent='';el('answerDisplay').textContent='';el('answerDisplay').hidden=true;el('practiceProgress').textContent='첫 번째 질문부터 시작합니다.'}
+el('stopAll').onclick=()=>{stop();el('audioStatus').textContent='재생을 정지했습니다.';};el('playAll').onclick=()=>{stop();const id=queueId;const sentences=db[current].pairs.flat().map(p=>p[0]);let pos=0;function next(){if(id!==queueId)return;if(pos>=sentences.length){el('audioStatus').textContent='전체 대화 듣기가 끝났습니다.';return;}el('audioStatus').textContent='전체 대화 듣기: '+(pos+1)+' / '+sentences.length;speak(sentences[pos++],next)}next()};
+el('nextQ').onclick=()=>{stop();practice=(practice+1)%db[current].pairs.length;const p=db[current].pairs[practice];el('practiceProgress').textContent=(practice+1)+' / '+db[current].pairs.length+' 번째 질문';el('practicePrompt').textContent=p[0][0];el('practiceMeaning').textContent=p[0][1];el('answerDisplay').textContent=p[1][0]+' — '+p[1][1];el('answerDisplay').hidden=true;speak(p[0][0])};
+el('modelA').onclick=()=>{if(practice<0)el('nextQ').click();else {stop();speak(db[current].pairs[practice][1][0]);}};el('reveal').onclick=()=>{if(practice<0){el('nextQ').click();return;}el('answerDisplay').hidden=!el('answerDisplay').hidden};
+render();
+
+/* 독립 홈페이지: 대화 요청문을 만들어 ChatGPT에서 사용합니다. */
+
+el('freeChat').onclick=async()=>{const prompt=`${db[current].title} 상황, ${el('level').value} 난이도로 시니어 영어 역할 대화를 시작해 주세요. 당신은 상대방 역할입니다. 한 번에 영어 질문 하나와 바로 아래 한국어 뜻을 제시하세요. 한글 발음은 쓰지 마세요. 한국어 또는 영어 답변을 받아 짧고 친절하게 문법과 상황 적합성을 피드백하고 다음 질문을 하세요. 음성을 실제로 듣지 않았다면 발음을 평가하지 마세요.`;el('chatPrompt').value=prompt;el('chatActions').hidden=false;el('chatStatus').textContent='① 요청문 복사 → ② ChatGPT 열기 → ③ 새 대화에 붙여넣기';};
+
+
+el('copyPrompt').onclick=async()=>{try{await navigator.clipboard.writeText(el('chatPrompt').value);el('chatStatus').textContent='복사했습니다. ChatGPT 새 대화에 붙여넣어 보내세요.';}catch{el('chatPrompt').focus();el('chatPrompt').select();el('chatStatus').textContent='요청문을 길게 눌러 복사한 후 ChatGPT에 붙여넣어 주세요.';}};
+el('rate').onchange=()=>{stop();el('audioStatus').textContent='음성 속도를 변경했습니다. 듣기 버튼을 다시 눌러 주세요.';};
+window.addEventListener('pagehide',stop);
+</script>
+</body></html>
